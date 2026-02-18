@@ -6,17 +6,12 @@ Desktop application for running a Quip Network testnet node. Mine blocks, earn t
 
 ## Download
 
-**No releases yet** - we're preparing the first alpha build.
-
-Check back soon or watch this repo for releases.
-
-<!--
 | Platform | Download |
 |----------|----------|
-| macOS | [Download .dmg](../../releases/latest) |
-| Windows | [Download .msi](../../releases/latest) |
-| Linux | [Download .AppImage](../../releases/latest) |
--->
+| macOS (Apple Silicon) | [Download .dmg](../../releases/latest) |
+| macOS (Intel) | Coming soon |
+| Windows | Coming soon |
+| Linux | Coming soon |
 
 ## Requirements
 
@@ -29,9 +24,8 @@ Check back soon or watch this repo for releases.
 
 1. Download and install the app
 2. Launch "Quip Network Node"
-3. Complete the setup wizard (auto-detects your IP)
-4. Save your node secret somewhere safe
-5. Click "Start" to begin mining
+3. Save your node secret somewhere safe (shown on first launch)
+4. Click "Start" to begin mining
 
 ## Port Forwarding
 
