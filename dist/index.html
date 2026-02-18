@@ -1,0 +1,1388 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quip Network Node</title>
+  <style>
+    :root {
+      --bg-primary: #0a0a0f;
+      --bg-secondary: #111118;
+      --bg-tertiary: #1a1a24;
+      --bg-card: #14141c;
+      --text-primary: #ffffff;
+      --text-secondary: #9ca3af;
+      --text-muted: #6b7280;
+      --accent: #3b82f6;
+      --accent-hover: #60a5fa;
+      --accent-glow: rgba(59, 130, 246, 0.3);
+      --success: #10b981;
+      --success-glow: rgba(16, 185, 129, 0.2);
+      --warning: #f59e0b;
+      --warning-glow: rgba(245, 158, 11, 0.2);
+      --error: #ef4444;
+      --error-glow: rgba(239, 68, 68, 0.2);
+      --border: #27272a;
+      --border-light: #3f3f46;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, sans-serif;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* Minimal Title Bar (window drag region) */
+    .titlebar {
+      height: 28px;
+      background: var(--bg-secondary);
+      border-bottom: 1px solid var(--border);
+      -webkit-app-region: drag;
+    }
+
+    /* Main Layout */
+    .main {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      grid-template-rows: auto auto 1fr;
+      gap: 14px;
+      padding: 14px;
+      min-height: 0;
+      overflow: hidden;
+    }
+
+    /* Hero Status Card */
+    .status-card {
+      grid-column: 1 / -1;
+      background: var(--bg-card);
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      padding: 20px 24px;
+      display: flex;
+      align-items: center;
+      gap: 18px;
+    }
+
+    .status-hero {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      flex: 1;
+    }
+
+    /* Logo Orb with glow ring */
+    .status-orb {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      background: var(--bg-tertiary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      border: 2px solid var(--border);
+      transition: all 0.3s;
+    }
+
+    .status-orb img {
+      width: 32px;
+      height: 32px;
+      position: relative;
+      z-index: 2;
+      filter: grayscale(50%) brightness(0.8);
+      transition: all 0.3s;
+    }
+
+    .status-orb.running,
+    .status-orb.connected {
+      border-color: var(--success);
+      box-shadow: 0 0 20px var(--success-glow), 0 0 40px var(--success-glow);
+    }
+
+    .status-orb.running img,
+    .status-orb.connected img {
+      filter: none;
+    }
+
+    .status-orb.syncing,
+    .status-orb.starting {
+      border-color: var(--warning);
+      box-shadow: 0 0 15px var(--warning-glow);
+      animation: pulse-border 1.5s infinite;
+    }
+
+    .status-orb.syncing img,
+    .status-orb.starting img {
+      filter: grayscale(20%);
+    }
+
+    .status-orb.error,
+    .status-orb.disconnected {
+      border-color: var(--error);
+      box-shadow: 0 0 15px var(--error-glow);
+    }
+
+    @keyframes pulse-border {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.6; }
+    }
+
+    .status-info {
+      flex: 1;
+    }
+
+    .status-brand {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 2px;
+    }
+
+    .status-brand h1 {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--text-secondary);
+    }
+
+    .status-brand .badge {
+      background: linear-gradient(135deg, var(--accent), #8b5cf6);
+      color: white;
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+    }
+
+    .status-brand .version-badge {
+      background: var(--bg-tertiary);
+      color: var(--text-muted);
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .status-brand .version-badge:hover {
+      background: var(--bg-secondary);
+      color: var(--text-secondary);
+    }
+
+    .status-text {
+      font-size: 28px;
+      font-weight: 600;
+      margin-bottom: 2px;
+    }
+
+    .status-detail {
+      color: var(--text-muted);
+      font-size: 14px;
+    }
+
+    .status-actions {
+      display: flex;
+      gap: 10px;
+    }
+
+    .btn {
+      padding: 12px 24px;
+      border-radius: 8px;
+      border: none;
+      font-size: 15px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.15s;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: white;
+    }
+
+    .btn-primary:hover:not(:disabled) {
+      background: var(--accent-hover);
+      box-shadow: 0 0 20px var(--accent-glow);
+    }
+
+    .btn-danger {
+      background: transparent;
+      color: var(--error);
+      border: 1px solid var(--error);
+    }
+
+    .btn-danger:hover:not(:disabled) {
+      background: var(--error);
+      color: white;
+    }
+
+    .btn-secondary {
+      background: var(--bg-tertiary);
+      color: var(--text-primary);
+      border: 1px solid var(--border);
+    }
+
+    .btn-secondary:hover:not(:disabled) {
+      background: var(--bg-secondary);
+      border-color: var(--border-light);
+    }
+
+    .btn:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+
+    .btn.loading {
+      pointer-events: none;
+    }
+
+    .btn.loading::after {
+      content: '';
+      width: 14px;
+      height: 14px;
+      border: 2px solid transparent;
+      border-top-color: currentColor;
+      border-radius: 50%;
+      animation: spin 0.6s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* Stats Panel */
+    .stats-panel {
+      background: var(--bg-card);
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .panel-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+    }
+
+    .panel-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      flex: 1;
+    }
+
+    .stat-item {
+      background: var(--bg-tertiary);
+      border-radius: 8px;
+      padding: 16px;
+    }
+
+    .stat-label {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+
+    .stat-value {
+      font-size: 26px;
+      font-weight: 600;
+      font-feature-settings: 'tnum';
+    }
+
+    .stat-value.success { color: var(--success); }
+    .stat-value.warning { color: var(--warning); }
+    .stat-value.error { color: var(--error); }
+
+    /* Network Panel */
+    .network-panel {
+      background: var(--bg-card);
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .network-status {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .network-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 14px;
+      background: var(--bg-tertiary);
+      border-radius: 8px;
+    }
+
+    .network-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--text-muted);
+    }
+
+    .network-dot.open { background: var(--success); }
+    .network-dot.closed { background: var(--error); }
+    .network-dot.checking { background: var(--warning); animation: pulse 1s infinite; }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+
+    .network-info {
+      flex: 1;
+    }
+
+    .network-info strong {
+      font-size: 15px;
+      display: block;
+    }
+
+    .network-info span {
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+
+    .network-action {
+      font-size: 13px;
+      color: var(--accent);
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 6px 10px;
+      border-radius: 4px;
+    }
+
+    .network-action:hover {
+      background: var(--accent-glow);
+    }
+
+    /* Secret Section (collapsed by default) */
+    .secret-toggle {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 12px;
+      background: var(--bg-tertiary);
+      border-radius: 8px;
+      cursor: pointer;
+      margin-top: auto;
+    }
+
+    .secret-toggle:hover {
+      background: var(--bg-secondary);
+    }
+
+    .secret-icon {
+      color: var(--warning);
+    }
+
+    .secret-toggle span {
+      font-size: 14px;
+      color: var(--text-secondary);
+    }
+
+    .secret-toggle .chevron {
+      margin-left: auto;
+      color: var(--text-muted);
+      transition: transform 0.2s;
+    }
+
+    .secret-toggle.expanded .chevron {
+      transform: rotate(180deg);
+    }
+
+    .secret-content {
+      display: none;
+      margin-top: 10px;
+      padding: 12px;
+      background: var(--bg-primary);
+      border-radius: 8px;
+      border: 1px solid var(--border);
+    }
+
+    .secret-content.visible {
+      display: block;
+    }
+
+    .secret-value-display {
+      font-family: 'SF Mono', Monaco, 'Courier New', monospace;
+      font-size: 12px;
+      color: var(--text-secondary);
+      word-break: break-all;
+      margin-bottom: 10px;
+    }
+
+    .secret-actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    .secret-actions button {
+      flex: 1;
+      padding: 8px 12px;
+      font-size: 13px;
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border);
+      color: var(--text-secondary);
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    .secret-actions button:hover {
+      background: var(--bg-secondary);
+      color: var(--text-primary);
+    }
+
+    /* Terminal - Full Width Bottom */
+    .terminal-section {
+      grid-column: 1 / -1;
+      background: var(--bg-card);
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+      overflow: hidden;
+    }
+
+    .terminal-header {
+      display: flex;
+      align-items: center;
+      padding: 8px 12px;
+      border-bottom: 1px solid var(--border);
+      gap: 8px;
+    }
+
+    .terminal-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--error);
+    }
+
+    .terminal-dot:nth-child(2) { background: var(--warning); }
+    .terminal-dot:nth-child(3) { background: var(--success); }
+
+    .terminal-title {
+      flex: 1;
+      font-size: 14px;
+      color: var(--text-muted);
+      text-align: center;
+    }
+
+    .terminal-actions {
+      display: flex;
+      gap: 6px;
+    }
+
+    .terminal-actions button {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-size: 13px;
+      padding: 6px 10px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    .terminal-actions button:hover {
+      background: var(--bg-tertiary);
+      color: var(--text-primary);
+    }
+
+    .terminal-output {
+      flex: 1;
+      padding: 14px;
+      overflow-y: auto;
+      font-family: 'SF Mono', Monaco, 'Courier New', monospace;
+      font-size: 13px;
+      line-height: 1.6;
+      background: var(--bg-primary);
+    }
+
+    .log-line {
+      color: var(--text-muted);
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .log-line .time {
+      color: var(--text-muted);
+      opacity: 0.6;
+    }
+
+    .log-line.error { color: var(--error); }
+    .log-line.success { color: var(--success); }
+    .log-line.info { color: var(--accent); }
+
+    /* Modals */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.8);
+      z-index: 300;
+      align-items: center;
+      justify-content: center;
+      backdrop-filter: blur(4px);
+    }
+
+    .modal-overlay.visible {
+      display: flex;
+    }
+
+    .modal {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 24px;
+      max-width: 420px;
+      width: 90%;
+      max-height: 80vh;
+      overflow-y: auto;
+    }
+
+    .modal h3 {
+      font-size: 18px;
+      margin-bottom: 16px;
+    }
+
+    /* About Modal */
+    .about-modal {
+      text-align: center;
+      max-width: 320px;
+    }
+
+    .about-header {
+      margin-bottom: 16px;
+    }
+
+    .about-logo {
+      width: 48px;
+      height: 48px;
+      margin-bottom: 12px;
+    }
+
+    .about-header h3 {
+      margin-bottom: 4px;
+    }
+
+    .about-version {
+      display: inline-block;
+      background: var(--bg-tertiary);
+      color: var(--text-muted);
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-family: 'SF Mono', Monaco, monospace;
+    }
+
+    .about-description {
+      color: var(--text-secondary);
+      font-size: 13px;
+      line-height: 1.5;
+      margin-bottom: 16px;
+    }
+
+    .about-links {
+      margin-bottom: 16px;
+    }
+
+    .about-links a {
+      color: var(--accent);
+      text-decoration: none;
+      font-size: 13px;
+    }
+
+    .about-links a:hover {
+      text-decoration: underline;
+    }
+
+    .about-separator {
+      color: var(--text-muted);
+      margin: 0 8px;
+    }
+
+    .about-copyright {
+      color: var(--text-muted);
+      font-size: 11px;
+      margin-bottom: 16px;
+    }
+
+    .modal-group {
+      margin-bottom: 16px;
+    }
+
+    .modal-group label {
+      display: block;
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+
+    .modal-input {
+      width: 100%;
+      padding: 10px 12px;
+      background: var(--bg-primary);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text-primary);
+      font-size: 14px;
+    }
+
+    .modal-input:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+
+    .modal-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 20px;
+    }
+
+    .modal-actions .btn {
+      flex: 1;
+    }
+
+    .modal-note {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 12px;
+    }
+
+    /* Port Help Modal */
+    .port-help h3 {
+      color: var(--error);
+    }
+
+    .port-help p {
+      color: var(--text-secondary);
+      font-size: 13px;
+      line-height: 1.6;
+      margin-bottom: 12px;
+    }
+
+    .port-help ol {
+      color: var(--text-secondary);
+      font-size: 13px;
+      margin-left: 20px;
+      margin-bottom: 16px;
+    }
+
+    .port-help li {
+      margin-bottom: 8px;
+      line-height: 1.5;
+    }
+
+    .port-help code {
+      background: var(--bg-primary);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-family: 'SF Mono', Monaco, monospace;
+    }
+
+    /* Wizard */
+    .wizard-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.9);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 400;
+    }
+
+    .wizard-overlay.hidden {
+      display: none;
+    }
+
+    .wizard {
+      background: var(--bg-card);
+      border-radius: 20px;
+      padding: 32px;
+      max-width: 480px;
+      width: 90%;
+      border: 1px solid var(--border);
+    }
+
+    .wizard h2 {
+      font-size: 24px;
+      margin-bottom: 8px;
+    }
+
+    .wizard > p {
+      color: var(--text-secondary);
+      margin-bottom: 28px;
+      line-height: 1.6;
+    }
+
+    .wizard-step h3 {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 8px;
+    }
+
+    .wizard-step p {
+      font-size: 13px;
+      color: var(--text-secondary);
+      margin-bottom: 12px;
+    }
+
+    .wizard-input {
+      width: 100%;
+      padding: 12px 14px;
+      background: var(--bg-primary);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      color: var(--text-primary);
+      font-size: 14px;
+      margin-bottom: 20px;
+    }
+
+    .wizard-input:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-glow);
+    }
+
+    .wizard-secret-box {
+      background: var(--bg-primary);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px;
+      margin-bottom: 16px;
+    }
+
+    .wizard-secret-value {
+      font-family: 'SF Mono', Monaco, monospace;
+      font-size: 11px;
+      color: var(--text-secondary);
+      word-break: break-all;
+      line-height: 1.6;
+    }
+
+    .wizard-warning {
+      background: rgba(245, 158, 11, 0.1);
+      border: 1px solid var(--warning);
+      border-radius: 10px;
+      padding: 14px;
+      margin-bottom: 24px;
+    }
+
+    .wizard-warning p {
+      color: var(--warning);
+      font-size: 13px;
+      margin: 0;
+    }
+
+    .wizard-actions {
+      display: flex;
+      gap: 12px;
+    }
+
+    .wizard-actions .btn {
+      flex: 1;
+      padding: 12px 20px;
+    }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: var(--border);
+      border-radius: 3px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--border-light);
+    }
+  </style>
+</head>
+<body>
+  <!-- Minimal Title Bar (drag region) -->
+  <div class="titlebar"></div>
+
+  <!-- Main Content -->
+  <main class="main">
+    <!-- Hero Status Card -->
+    <section class="status-card">
+      <div class="status-hero">
+        <div class="status-orb" id="status-orb">
+          <img src="quiplogo.png" alt="Quip">
+        </div>
+        <div class="status-info">
+          <div class="status-brand">
+            <h1>Quip Network Node</h1>
+            <span class="badge">TESTNET</span>
+            <span class="version-badge" id="version-badge" title="Click for info">v0.1.0-alpha.1</span>
+          </div>
+          <div class="status-text" id="status-text">Stopped</div>
+          <div class="status-detail" id="status-detail">Ready to connect to the network</div>
+        </div>
+      </div>
+      <div class="status-actions">
+        <button class="btn btn-primary" id="btn-start">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+          Start
+        </button>
+        <button class="btn btn-danger" id="btn-stop" disabled>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="6" width="12" height="12" rx="1"/></svg>
+          Stop
+        </button>
+      </div>
+    </section>
+
+    <!-- Stats Panel -->
+    <section class="stats-panel">
+      <div class="panel-header">
+        <span class="panel-title">Node Statistics</span>
+      </div>
+      <div class="stats-grid">
+        <div class="stat-item">
+          <div class="stat-label">Block Height</div>
+          <div class="stat-value" id="stat-block">--</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-label">Session Uptime</div>
+          <div class="stat-value" id="stat-uptime">--</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Network Panel -->
+    <section class="network-panel">
+      <div class="panel-header">
+        <span class="panel-title">Network</span>
+      </div>
+      <div class="network-status">
+        <div class="network-item">
+          <div class="network-dot" id="port-indicator"></div>
+          <div class="network-info">
+            <strong id="port-text">Port 20049</strong>
+            <span>Checking accessibility...</span>
+          </div>
+          <button class="network-action" id="port-recheck-btn">Recheck</button>
+          <button class="network-action" id="port-help-btn" style="display: none;">Fix</button>
+        </div>
+        <div class="network-item">
+          <div class="network-dot" id="ip-indicator"></div>
+          <div class="network-info">
+            <strong id="ip-text">Public IP</strong>
+            <span id="ip-value">Detecting...</span>
+          </div>
+        </div>
+
+        <!-- Collapsible Secret -->
+        <div class="secret-toggle" id="secret-toggle">
+          <span class="secret-icon">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+            </svg>
+          </span>
+          <span>Node Secret</span>
+          <span class="chevron">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="6 9 12 15 18 9"/>
+            </svg>
+          </span>
+        </div>
+        <div class="secret-content" id="secret-content">
+          <div class="secret-value-display" id="secret-value">Not generated</div>
+          <div class="secret-actions">
+            <button id="secret-toggle-visibility">Show</button>
+            <button id="secret-copy">Copy</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Terminal -->
+    <section class="terminal-section">
+      <div class="terminal-header">
+        <span class="terminal-dot"></span>
+        <span class="terminal-dot"></span>
+        <span class="terminal-dot"></span>
+        <span class="terminal-title">Output</span>
+        <div class="terminal-actions">
+          <button id="btn-copy-terminal">Copy</button>
+          <button id="btn-clear">Clear</button>
+        </div>
+      </div>
+      <div class="terminal-output" id="terminal">
+        <div class="log-line info"><span class="time">[--:--:--]</span> Quip Network Node v0.1.0 ready</div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Port Help Modal -->
+  <div class="modal-overlay" id="port-help-modal">
+    <div class="modal port-help">
+      <h3>Port Not Accessible</h3>
+      <p>Your port cannot be reached from the internet. Other nodes won't be able to connect to you.</p>
+      <p><strong>To fix this:</strong></p>
+      <ol>
+        <li><strong>Open your router settings</strong> - Usually at <code>192.168.1.1</code></li>
+        <li><strong>Find Port Forwarding</strong> - Look in NAT, Gaming, or Advanced</li>
+        <li><strong>Add a rule:</strong> External <code>20049</code> → Internal <code>20049</code> (UDP)</li>
+        <li><strong>Check firewall</strong> - Allow incoming connections on port 20049</li>
+      </ol>
+      <p style="font-size: 11px; color: var(--text-muted);">Important: Forward UDP, not TCP. QUIC uses UDP.</p>
+      <div class="modal-actions">
+        <button class="btn btn-primary" id="port-help-close">Got it</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- About Modal -->
+  <div class="modal-overlay" id="about-modal">
+    <div class="modal about-modal">
+      <div class="about-header">
+        <img src="quiplogo.png" alt="Quip Network" class="about-logo">
+        <h3>Quip Network Node</h3>
+        <span class="about-version" id="about-version">v0.1.0-alpha.1</span>
+      </div>
+      <p class="about-description">Desktop application for running a Quip Network testnet node with quantum-inspired proof-of-work mining.</p>
+      <div class="about-links">
+        <a href="https://github.com/rdyplayerB/quip-network-testnet-node" target="_blank">GitHub</a>
+        <span class="about-separator">·</span>
+        <a href="https://discord.gg/quipnetwork" target="_blank">Discord</a>
+      </div>
+      <p class="about-copyright">Alpha software. Testnet tokens have no value.</p>
+      <div class="modal-actions">
+        <button class="btn btn-primary" id="about-close">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Setup Wizard -->
+  <div class="wizard-overlay" id="wizard-overlay">
+    <div class="wizard">
+      <h2>Welcome to Quip Network</h2>
+      <p>Let's set up your testnet node. This only takes a minute.</p>
+
+      <div class="wizard-step" id="wizard-step-1">
+        <h3>Network Configuration</h3>
+        <p>Your public IP was auto-detected. Make sure port <strong>20049 UDP</strong> is forwarded on your router.</p>
+        <input type="text" class="wizard-input" id="wizard-ip" placeholder="Detecting IP...">
+        <div class="wizard-actions">
+          <button class="btn btn-primary" id="wizard-next">Continue</button>
+        </div>
+      </div>
+
+      <div class="wizard-step" id="wizard-step-2" style="display: none;">
+        <h3>Your Node Secret</h3>
+        <p>This secret identifies your node. Save it to claim rewards after testnet.</p>
+        <div class="wizard-secret-box">
+          <div class="wizard-secret-value" id="wizard-secret">Generating...</div>
+        </div>
+        <button class="btn btn-secondary" style="width: 100%; margin-bottom: 16px;" id="wizard-copy">Copy to Clipboard</button>
+        <div class="wizard-warning">
+          <p><strong>Important:</strong> Save this secret somewhere safe. It cannot be recovered if lost.</p>
+        </div>
+        <div class="wizard-actions">
+          <button class="btn btn-secondary" id="wizard-back">Back</button>
+          <button class="btn btn-primary" id="wizard-finish">Start Node</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    const { invoke } = window.__TAURI__.core;
+    const { listen } = window.__TAURI__.event;
+    const { getVersion } = window.__TAURI__.app;
+
+    // State
+    let nodeSecret = null;
+    let secretVisible = false;
+    let isRunning = false;
+    let startTime = null;
+    let uptimeInterval = null;
+
+    // DOM Elements
+    const statusOrb = document.getElementById('status-orb');
+    const statusText = document.getElementById('status-text');
+    const statusDetail = document.getElementById('status-detail');
+    const terminal = document.getElementById('terminal');
+    const btnStart = document.getElementById('btn-start');
+    const btnStop = document.getElementById('btn-stop');
+
+    // Stats elements
+    const statBlock = document.getElementById('stat-block');
+    const statUptime = document.getElementById('stat-uptime');
+
+    // Port elements
+    const portIndicator = document.getElementById('port-indicator');
+    const portText = document.getElementById('port-text');
+    const portHelpBtn = document.getElementById('port-help-btn');
+    const portHelpModal = document.getElementById('port-help-modal');
+
+    // IP elements
+    const ipIndicator = document.getElementById('ip-indicator');
+    const ipValue = document.getElementById('ip-value');
+
+    // Add log with better formatting
+    function addLog(message, type = '') {
+      const line = document.createElement('div');
+      line.className = 'log-line ' + type;
+      const time = new Date().toLocaleTimeString('en-US', { hour12: false });
+      line.innerHTML = `<span class="time">[${time}]</span> ${message}`;
+      terminal.appendChild(line);
+      terminal.scrollTop = terminal.scrollHeight;
+    }
+
+    // Update status with visual feedback
+    function updateStatus(status, detail = '') {
+      statusOrb.className = 'status-orb ' + status;
+
+      const statusLabels = {
+        'stopped': 'Stopped',
+        'starting': 'Starting...',
+        'running': 'Running',
+        'syncing': 'Syncing',
+        'connected': 'Connected',
+        'error': 'Error',
+        'disconnected': 'Disconnected'
+      };
+
+      statusText.textContent = statusLabels[status] || status;
+      if (detail) statusDetail.textContent = detail;
+
+      isRunning = !['stopped', 'error'].includes(status);
+      btnStart.disabled = isRunning;
+      btnStop.disabled = !isRunning;
+
+      // Update stats based on status
+      if (status === 'stopped') {
+        statBlock.textContent = '--';
+        statUptime.textContent = '--';
+        if (uptimeInterval) clearInterval(uptimeInterval);
+        startTime = null;
+      } else if (['running', 'connected', 'syncing'].includes(status)) {
+        if (!startTime) {
+          startTime = Date.now();
+          uptimeInterval = setInterval(updateUptime, 1000);
+        }
+      }
+    }
+
+    function updateUptime() {
+      if (!startTime) return;
+      const elapsed = Math.floor((Date.now() - startTime) / 1000);
+      const hours = Math.floor(elapsed / 3600);
+      const mins = Math.floor((elapsed % 3600) / 60);
+      const secs = elapsed % 60;
+      statUptime.textContent = `${hours}h ${mins}m ${secs}s`;
+    }
+
+    // Check port status
+    async function checkPortStatus() {
+      portIndicator.className = 'network-dot checking';
+      portText.querySelector('+ .network-info span') ||
+        (portText.parentElement.querySelector('span').textContent = 'Checking...');
+      portHelpBtn.style.display = 'none';
+
+      try {
+        const settings = await invoke('get_settings');
+        const ip = settings.public_ip;
+        const port = settings.port || 20049;
+
+        // Update IP display
+        if (ip) {
+          ipIndicator.className = 'network-dot open';
+          ipValue.textContent = ip;
+        }
+
+        if (!ip) {
+          portText.textContent = `Port ${port}`;
+          portText.parentElement.querySelector('span').textContent = 'Configure IP first';
+          portIndicator.className = 'network-dot';
+          return;
+        }
+
+        const isOpen = await invoke('check_port_forwarding', { ip, port });
+
+        if (isOpen) {
+          portIndicator.className = 'network-dot open';
+          portText.textContent = `Port ${port}`;
+          portText.parentElement.querySelector('span').textContent = 'Accessible';
+          portHelpBtn.style.display = 'none';
+          addLog(`Port ${port} is accessible`, 'success');
+        } else {
+          portIndicator.className = 'network-dot closed';
+          portText.textContent = `Port ${port}`;
+          portText.parentElement.querySelector('span').textContent = 'Not accessible';
+          portHelpBtn.style.display = 'block';
+          addLog(`Port ${port} is not accessible from internet`, 'error');
+        }
+      } catch (e) {
+        portIndicator.className = 'network-dot';
+        portText.parentElement.querySelector('span').textContent = 'Check failed';
+        addLog('Port check failed: ' + e, 'error');
+      }
+    }
+
+    // Initialize
+    async function init() {
+      // Get and display version
+      try {
+        const version = await getVersion();
+        document.getElementById('version-badge').textContent = 'v' + version;
+        document.getElementById('about-version').textContent = 'v' + version;
+      } catch (e) {
+        console.log('Could not get version:', e);
+      }
+
+      addLog('Initializing...', 'info');
+
+      try {
+        nodeSecret = await invoke('get_node_secret');
+
+        if (nodeSecret) {
+          document.getElementById('wizard-overlay').classList.add('hidden');
+          updateSecretDisplay();
+          addLog('Node configured and ready', 'success');
+          setTimeout(checkPortStatus, 500);
+        } else {
+          addLog('First launch - setup required', 'info');
+          document.getElementById('wizard-overlay').classList.remove('hidden');
+          detectIP();
+        }
+
+        const settings = await invoke('get_settings');
+        if (settings.public_ip) {
+          document.getElementById('wizard-ip').value = settings.public_ip;
+          ipValue.textContent = settings.public_ip;
+          ipIndicator.className = 'network-dot open';
+        }
+      } catch (e) {
+        addLog('Initialization error: ' + e, 'error');
+      }
+    }
+
+    // Detect IP
+    async function detectIP() {
+      const ipInput = document.getElementById('wizard-ip');
+      ipInput.placeholder = 'Detecting...';
+
+      try {
+        const ip = await Promise.race([
+          invoke('detect_public_ip'),
+          new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 10000))
+        ]);
+        ipInput.value = ip;
+        ipValue.textContent = ip;
+        ipIndicator.className = 'network-dot open';
+        addLog('Detected IP: ' + ip, 'success');
+      } catch (e) {
+        ipInput.placeholder = 'Enter IP manually';
+        addLog('IP detection failed', 'error');
+      }
+    }
+
+    // Secret display
+    function updateSecretDisplay() {
+      const display = document.getElementById('secret-value');
+      if (nodeSecret) {
+        display.textContent = secretVisible ? nodeSecret : '•'.repeat(24) + nodeSecret.slice(-8);
+      }
+    }
+
+    // Event listeners
+    document.getElementById('secret-toggle').addEventListener('click', () => {
+      const content = document.getElementById('secret-content');
+      const toggle = document.getElementById('secret-toggle');
+      content.classList.toggle('visible');
+      toggle.classList.toggle('expanded');
+    });
+
+    document.getElementById('secret-toggle-visibility').addEventListener('click', () => {
+      secretVisible = !secretVisible;
+      document.getElementById('secret-toggle-visibility').textContent = secretVisible ? 'Hide' : 'Show';
+      updateSecretDisplay();
+    });
+
+    document.getElementById('secret-copy').addEventListener('click', async () => {
+      if (nodeSecret) {
+        await navigator.clipboard.writeText(nodeSecret);
+        const btn = document.getElementById('secret-copy');
+        btn.textContent = 'Copied!';
+        setTimeout(() => btn.textContent = 'Copy', 1500);
+      }
+    });
+
+    btnStart.addEventListener('click', async () => {
+      if (!nodeSecret) {
+        document.getElementById('wizard-overlay').classList.remove('hidden');
+        return;
+      }
+      try {
+        btnStart.classList.add('loading');
+        updateStatus('starting', 'Initializing node...');
+        addLog('Starting node...', 'info');
+        await invoke('start_node');
+        updateStatus('running', 'Node is active');
+      } catch (e) {
+        updateStatus('error', e.toString());
+        addLog('Failed to start: ' + e, 'error');
+      } finally {
+        btnStart.classList.remove('loading');
+      }
+    });
+
+    btnStop.addEventListener('click', async () => {
+      try {
+        btnStop.classList.add('loading');
+        addLog('Stopping node...', 'info');
+        await invoke('stop_node');
+        updateStatus('stopped', 'Node stopped');
+        addLog('Node stopped', 'info');
+      } catch (e) {
+        addLog('Failed to stop: ' + e, 'error');
+      } finally {
+        btnStop.classList.remove('loading');
+      }
+    });
+
+    document.getElementById('btn-clear').addEventListener('click', () => {
+      terminal.innerHTML = '<div class="log-line info"><span class="time">[--:--:--]</span> Terminal cleared</div>';
+    });
+
+    document.getElementById('btn-copy-terminal').addEventListener('click', async () => {
+      const text = Array.from(terminal.querySelectorAll('.log-line')).map(l => l.textContent).join('\n');
+      await navigator.clipboard.writeText(text);
+      const btn = document.getElementById('btn-copy-terminal');
+      btn.textContent = 'Copied!';
+      setTimeout(() => btn.textContent = 'Copy', 1500);
+    });
+
+    // Port help
+    document.getElementById('port-recheck-btn').addEventListener('click', checkPortStatus);
+    portHelpBtn.addEventListener('click', () => portHelpModal.classList.add('visible'));
+    document.getElementById('port-help-close').addEventListener('click', () => portHelpModal.classList.remove('visible'));
+    portHelpModal.addEventListener('click', (e) => {
+      if (e.target === portHelpModal) portHelpModal.classList.remove('visible');
+    });
+
+    // About modal
+    const aboutModal = document.getElementById('about-modal');
+    document.getElementById('version-badge').addEventListener('click', () => {
+      aboutModal.classList.add('visible');
+    });
+    document.getElementById('about-close').addEventListener('click', () => {
+      aboutModal.classList.remove('visible');
+    });
+    aboutModal.addEventListener('click', (e) => {
+      if (e.target === aboutModal) aboutModal.classList.remove('visible');
+    });
+
+    // Wizard
+    document.getElementById('wizard-next').addEventListener('click', async () => {
+      const ip = document.getElementById('wizard-ip').value;
+      if (!ip) { alert('Please enter your public IP'); return; }
+
+      await invoke('update_settings', {
+        settings: { public_ip: ip, port: 20049, auto_start: false, start_on_boot: false, minimize_to_tray: true }
+      });
+
+      nodeSecret = await invoke('generate_node_secret');
+      document.getElementById('wizard-secret').textContent = nodeSecret;
+      document.getElementById('wizard-step-1').style.display = 'none';
+      document.getElementById('wizard-step-2').style.display = 'block';
+    });
+
+    document.getElementById('wizard-back').addEventListener('click', () => {
+      document.getElementById('wizard-step-1').style.display = 'block';
+      document.getElementById('wizard-step-2').style.display = 'none';
+    });
+
+    document.getElementById('wizard-copy').addEventListener('click', async () => {
+      await navigator.clipboard.writeText(nodeSecret);
+      const btn = document.getElementById('wizard-copy');
+      btn.textContent = 'Copied!';
+      setTimeout(() => btn.textContent = 'Copy to Clipboard', 1500);
+    });
+
+    document.getElementById('wizard-finish').addEventListener('click', async () => {
+      document.getElementById('wizard-overlay').classList.add('hidden');
+      updateSecretDisplay();
+      checkPortStatus();
+      btnStart.click();
+    });
+
+    // Node events
+    listen('node-log', (e) => {
+      addLog(e.payload);
+      // Parse block height from log output
+      // Matches: "Accepted block 123-" or "block 123" or "Block: 123"
+      const blockMatch = e.payload.match(/(?:Accepted\s+)?block[:\s]+(\d+)/i);
+      if (blockMatch) statBlock.textContent = blockMatch[1];
+    });
+
+    listen('node-error', (e) => addLog(e.payload, 'error'));
+
+    listen('node-status', (e) => {
+      const status = e.payload;
+      if (status === 'connected') {
+        updateStatus('connected', 'Connected to network');
+        addLog('Connected to network!', 'success');
+      } else if (status === 'syncing') {
+        updateStatus('syncing', 'Synchronizing...');
+      } else if (status === 'stopped') {
+        updateStatus('stopped', 'Node stopped');
+      } else if (status === 'error') {
+        updateStatus('error', 'Connection error');
+      }
+    });
+
+    listen('debug-message', (e) => addLog('[Debug] ' + e.payload, 'info'));
+
+    // Start
+    init();
+  </script>
+</body>
+</html>
