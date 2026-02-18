@@ -9,9 +9,10 @@ Desktop application for running a Quip Network testnet node. Mine blocks, earn t
 | Platform | Download |
 |----------|----------|
 | macOS (Apple Silicon) | [Download .dmg](../../releases/latest) |
-| macOS (Intel) | Coming soon |
-| Windows | Coming soon |
-| Linux | Coming soon |
+| Windows | [Download .exe](../../releases/latest) |
+| Linux (Debian/Ubuntu) | [Download .deb](../../releases/latest) |
+| Linux (Fedora/RHEL) | [Download .rpm](../../releases/latest) |
+| Linux (AppImage) | [Download .AppImage](../../releases/latest) |
 
 ## Requirements
 
