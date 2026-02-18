@@ -15,16 +15,31 @@ RESOURCES_DIR="$PROJECT_ROOT/src-tauri/resources"
 echo "=== Quip Network Node - Python Bundle Script ==="
 echo "Project root: $PROJECT_ROOT"
 
-# Detect architecture
+# Detect OS and architecture
+OS=$(uname -s)
 ARCH=$(uname -m)
-if [ "$ARCH" = "arm64" ]; then
-    PLATFORM="aarch64-apple-darwin"
-    echo "Architecture: Apple Silicon (ARM64)"
-elif [ "$ARCH" = "x86_64" ]; then
-    PLATFORM="x86_64-apple-darwin"
-    echo "Architecture: Intel (x86_64)"
+
+if [ "$OS" = "Darwin" ]; then
+    if [ "$ARCH" = "arm64" ]; then
+        PLATFORM="aarch64-apple-darwin"
+        echo "Platform: macOS Apple Silicon (ARM64)"
+    else
+        PLATFORM="x86_64-apple-darwin"
+        echo "Platform: macOS Intel (x86_64)"
+    fi
+elif [ "$OS" = "Linux" ]; then
+    if [ "$ARCH" = "x86_64" ]; then
+        PLATFORM="x86_64-unknown-linux-gnu"
+        echo "Platform: Linux x86_64"
+    elif [ "$ARCH" = "aarch64" ]; then
+        PLATFORM="aarch64-unknown-linux-gnu"
+        echo "Platform: Linux ARM64"
+    else
+        echo "ERROR: Unsupported Linux architecture: $ARCH"
+        exit 1
+    fi
 else
-    echo "ERROR: Unsupported architecture: $ARCH"
+    echo "ERROR: Unsupported OS: $OS"
     exit 1
 fi
 
@@ -80,8 +95,13 @@ echo "=== Step 5: Installing pip and dependencies ==="
 curl -sS https://bootstrap.pypa.io/get-pip.py -o "$BUILD_DIR/get-pip.py"
 "$BUILD_DIR/python/bin/python3" "$BUILD_DIR/get-pip.py" --no-warn-script-location
 
-echo "Installing dependencies from requirements.txt..."
-"$BUILD_DIR/python/bin/python3" -m pip install -r "$PROJECT_ROOT/node-extract/requirements.txt" --no-warn-script-location
+# Install dependencies from requirements.txt in project root
+if [ -f "$PROJECT_ROOT/requirements.txt" ]; then
+    echo "Installing dependencies from requirements.txt..."
+    "$BUILD_DIR/python/bin/python3" -m pip install -r "$PROJECT_ROOT/requirements.txt" --no-warn-script-location
+else
+    echo "WARNING: No requirements.txt found, skipping dependency installation"
+fi
 
 # Prepare site-packages
 echo ""
@@ -107,10 +127,9 @@ find "$SITE_PACKAGES" -name "*.pyc" -delete 2>/dev/null || true
 echo ""
 echo "=== Step 7: Copying to resources directory ==="
 
-# Remove old resources
+# Remove old Python resources (keep quip-node code)
 rm -rf "$RESOURCES_DIR/python"
 rm -rf "$RESOURCES_DIR/site-packages"
-rm -rf "$RESOURCES_DIR/quip-node"
 
 # Copy Python interpreter
 echo "Copying Python interpreter..."
@@ -119,22 +138,6 @@ cp -R "$BUILD_DIR/python" "$RESOURCES_DIR/python"
 # Copy site-packages
 echo "Copying site-packages..."
 cp -R "$SITE_PACKAGES" "$RESOURCES_DIR/site-packages"
-
-# Copy application code
-echo "Copying application code..."
-mkdir -p "$RESOURCES_DIR/quip-node"
-cp "$PROJECT_ROOT/node-extract/quip_cli.py" "$RESOURCES_DIR/quip-node/"
-cp -R "$PROJECT_ROOT/node-extract/shared" "$RESOURCES_DIR/quip-node/"
-cp -R "$PROJECT_ROOT/node-extract/CPU" "$RESOURCES_DIR/quip-node/"
-cp -R "$PROJECT_ROOT/node-extract/GPU" "$RESOURCES_DIR/quip-node/"
-cp -R "$PROJECT_ROOT/node-extract/QPU" "$RESOURCES_DIR/quip-node/"
-cp -R "$PROJECT_ROOT/node-extract/dwave_topologies" "$RESOURCES_DIR/quip-node/"
-
-# Copy genesis block
-cp "$PROJECT_ROOT/node-extract/genesis_block_public.json" "$RESOURCES_DIR/"
-
-# Remove __pycache__ from quip-node
-find "$RESOURCES_DIR/quip-node" -name "__pycache__" -type d -exec rm -rf {} + 2>/dev/null || true
 
 # Report sizes
 echo ""
@@ -157,40 +160,5 @@ echo "Testing Python execution..."
 PYTHONHOME=./python PYTHONPATH=./site-packages:./quip-node \
   ./python/bin/python3 --version
 
-# Test critical imports
-echo "Testing imports..."
-PYTHONHOME=./python PYTHONPATH=./site-packages:./quip-node \
-  ./python/bin/python3 -c "
-import sys
-print('Python:', sys.version)
-print('Testing imports...')
-
-import click
-print('  click: OK')
-
-import numpy
-print('  numpy: OK')
-
-import aiohttp
-print('  aiohttp: OK')
-
-import cryptography
-print('  cryptography: OK')
-
-# These are the problematic D-Wave imports
-import dimod
-print('  dimod: OK')
-
-from shared.version import VERSION
-print(f'  shared.version: OK (v{VERSION})')
-
-print('')
-print('All critical imports successful!')
-"
-
 echo ""
 echo "=== Python bundle ready! ==="
-echo ""
-echo "Next steps:"
-echo "  1. Run 'npm run build' to build the Tauri app"
-echo "  2. The app will be in src-tauri/target/release/bundle/"
