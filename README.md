@@ -6,7 +6,7 @@ Desktop application for running a Quip Network node. Mine blocks, earn testnet p
   <img src="assets/screenshot.png" alt="Quip Network Node Runner" width="700">
 </p>
 
-> **Alpha Software:** This is early testnet software. Expect bugs. Tokens have no monetary value.
+> **Alpha Software:** This is early testnet software. Expect bugs.
 
 ## Download
 
