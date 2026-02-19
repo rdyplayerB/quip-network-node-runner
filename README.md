@@ -14,6 +14,16 @@ Desktop application for running a Quip Network node. Mine blocks, earn testnet p
 |----------|----------|
 | macOS (Apple Silicon) | [Download .dmg](../../releases/latest) |
 
+### Installation
+
+1. Download and open the `.dmg` file
+2. Drag the app to Applications
+3. **Important:** The app is not code-signed. macOS will show "damaged" warning. Run this in Terminal:
+   ```bash
+   xattr -cr "/Applications/Quip Network Node Runner.app"
+   ```
+4. Now you can open the app normally
+
 ## Requirements
 
 - **Port forwarding:** UDP port `20049` must be forwarded to your machine
@@ -41,39 +51,14 @@ The app needs incoming connections on UDP port 20049. To configure:
 
 - [Node.js](https://nodejs.org/) 20+
 - [Rust](https://rustup.rs/) 1.70+
-- Platform-specific dependencies (see below)
 
-### macOS
+### Build
 
 ```bash
 git clone https://github.com/rdyplayerB/quip-network-node-runner.git
 cd quip-network-node-runner
 npm install
 npm run bundle-python
-npm run tauri build
-```
-
-### Linux (Ubuntu/Debian)
-
-```bash
-sudo apt-get update
-sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev
-
-git clone https://github.com/rdyplayerB/quip-network-node-runner.git
-cd quip-network-node-runner
-npm install
-npm run bundle-python
-npm run tauri build
-```
-
-### Windows
-
-Requires Visual Studio Build Tools with C++ workload.
-
-```powershell
-git clone https://github.com/rdyplayerB/quip-network-node-runner.git
-cd quip-network-node-runner
-npm install
 npm run tauri build
 ```
 
