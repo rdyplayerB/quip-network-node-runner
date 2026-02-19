@@ -43,6 +43,16 @@ impl NodeManager {
             return Err("Node is already running".into());
         }
 
+        // Kill any orphan Python processes from previous runs
+        // This prevents issues when the app was force-quit without proper cleanup
+        #[cfg(unix)]
+        {
+            use std::process::Command as StdCommand;
+            let _ = StdCommand::new("pkill")
+                .args(["-9", "-f", "resources/python/bin/python3"])
+                .output();
+        }
+
         // Ensure config.toml exists
         let secret = config.node_secret.as_ref().ok_or("No node secret configured")?;
         let public_host = format!(
@@ -102,8 +112,8 @@ sys.argv = [
     '--peer', 'gpu-1.quip.carback.us',
     '--peer', 'gpu-2.quip.carback.us',
 ]
-from quip_cli import quip_network_node
-quip_network_node()
+from quip_cli import network_node_main
+network_node_main()
 "#,
             config_path.display(),
             num_cpus,
@@ -131,7 +141,7 @@ quip_network_node()
         eprintln!("[NodeManager] Starting Python at: {:?}", python_bin);
         eprintln!("[NodeManager] PYTHONHOME: {:?}", python_home);
         eprintln!("[NodeManager] PYTHONPATH: {:?}", python_path);
-        eprintln!("[NodeManager] Using inline -c script to invoke quip_cli");
+        eprintln!("[NodeManager] Starting node via network_node_main()");
 
         let mut child = cmd.spawn()?;
         eprintln!("[NodeManager] Process spawned successfully");
