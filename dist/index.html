@@ -478,7 +478,41 @@
     .about-copyright {
       font-size: 13px;
       color: var(--text-faint);
-      margin-bottom: 18px;
+      margin-bottom: 8px;
+    }
+
+    .about-credits {
+      font-size: 14px;
+      color: var(--text-dim);
+      margin-bottom: 6px;
+    }
+
+    .about-credits a {
+      color: var(--text);
+      text-decoration: none;
+    }
+
+    .about-credits a:hover {
+      color: var(--accent);
+    }
+
+    .about-footer {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      font-size: 12px;
+      color: var(--text-faint);
+      margin-bottom: 16px;
+    }
+
+    .about-footer a {
+      color: var(--text-faint);
+      text-decoration: none;
+    }
+
+    .about-footer a:hover {
+      color: var(--accent);
     }
 
     /* Wizard */
@@ -747,16 +781,13 @@
       <img src="quiplogo.png" alt="Quip Network" class="about-logo">
       <h3>Quip Network Node Runner</h3>
       <span class="about-version" id="about-version">v0.1.0</span>
-      <p class="about-description">Desktop application for running a Quip Network node.</p>
-      <div class="about-links">
+      <p class="about-credits">Built by <a href="https://www.birudo.studio/" target="_blank">ビルド studio</a> · <a href="https://x.com/rdyplayerB" target="_blank">rdyplayerB</a></p>
+      <div class="about-footer">
         <a href="https://github.com/rdyplayerB/quip-network-node-runner" target="_blank">GitHub</a>
-        <span class="about-separator">&middot;</span>
-        <a href="https://discord.gg/quipnetwork" target="_blank">Discord</a>
+        <span>·</span>
+        <a href="https://github.com/rdyplayerB/quip-network-node-runner/blob/main/LICENSE" target="_blank">MIT License</a>
       </div>
-      <p class="about-copyright">Alpha software. Testnet tokens have no value.</p>
-      <div class="modal-actions">
-        <button class="btn btn-primary" id="about-close">Close</button>
-      </div>
+      <button class="btn btn-secondary" id="about-close" style="padding: 8px 20px;">Close</button>
     </div>
   </div>
 
