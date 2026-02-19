@@ -45,107 +45,13 @@ jobs:
           releaseBody: |
             ## Quip Network Testnet Node ${{ github.ref_name }}
 
-            Download the appropriate installer for your platform below.
+            Download the installer for macOS (Apple Silicon) below.
 
             ### Requirements
+            - macOS 11 (Big Sur) or later
             - Port 20049 must be accessible for network connectivity
 
             ### Note
             This is alpha software for testing purposes only.
-          releaseDraft: false
-          prerelease: true
-
-  build-linux:
-    runs-on: ubuntu-22.04
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-
-      - name: Install Rust
-        uses: dtolnay/rust-toolchain@stable
-
-      - name: Install Tauri CLI
-        run: cargo install tauri-cli
-
-      - name: Install Linux dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Bundle Python
-        run: |
-          chmod +x scripts/bundle-python.sh
-          ./scripts/bundle-python.sh
-
-      - name: Build Tauri app
-        uses: tauri-apps/tauri-action@v0
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tagName: ${{ github.ref_name }}
-          releaseName: ${{ github.ref_name }}
-          releaseDraft: false
-          prerelease: true
-
-  build-windows:
-    runs-on: windows-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-
-      - name: Install Rust
-        uses: dtolnay/rust-toolchain@stable
-
-      - name: Install Tauri CLI
-        run: cargo install tauri-cli
-
-      - name: Setup Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.13'
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Setup Python bundle for Windows
-        shell: pwsh
-        run: |
-          # Create resources directories
-          New-Item -ItemType Directory -Force -Path "src-tauri/resources/python/bin"
-          New-Item -ItemType Directory -Force -Path "src-tauri/resources/site-packages"
-
-          # Get Python executable path and copy
-          $pythonPath = (Get-Command python).Source
-          $pythonDir = Split-Path $pythonPath -Parent
-
-          # Copy Python installation
-          Copy-Item -Recurse -Force "$pythonDir\*" "src-tauri/resources/python/"
-
-          # Create bin directory with python3 symlink for compatibility
-          Copy-Item "$pythonDir\python.exe" "src-tauri/resources/python/bin/python3.exe"
-
-          # Install dependencies
-          pip install -r requirements.txt --target src-tauri/resources/site-packages
-
-      - name: Build Tauri app
-        uses: tauri-apps/tauri-action@v0
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tagName: ${{ github.ref_name }}
-          releaseName: ${{ github.ref_name }}
           releaseDraft: false
           prerelease: true
