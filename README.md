@@ -2,6 +2,10 @@
 
 Desktop application for running a Quip Network testnet node. Mine blocks, earn testnet participation credit, and help test the network.
 
+<p align="center">
+  <img src="assets/screenshot.png" alt="Quip Network Testnet Node" width="700">
+</p>
+
 > **Alpha Software:** This is early testnet software. Expect bugs. Tokens have no monetary value.
 
 ## Download
