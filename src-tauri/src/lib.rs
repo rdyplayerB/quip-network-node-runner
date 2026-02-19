@@ -1,4 +1,4 @@
-//! Quip Network Node - Tauri Backend
+//! Quip Network Node Runner - Tauri Backend
 //!
 //! Handles node process management, configuration, and IPC with the frontend.
 
@@ -95,10 +95,10 @@ pub fn run() {
                 &[
                     &Submenu::with_items(
                         app,
-                        "Quip Network Node",
+                        "Quip Network Node Runner",
                         true,
                         &[
-                            &MenuItem::with_id(app, "about", "About Quip Network Node", true, None::<&str>)?,
+                            &MenuItem::with_id(app, "about", "About Quip Network Node Runner", true, None::<&str>)?,
                             &MenuItem::with_id(app, "quit", "Quit", true, Some("CmdOrCtrl+Q"))?,
                         ],
                     )?,

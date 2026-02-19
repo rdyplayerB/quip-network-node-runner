@@ -1,5 +1,5 @@
 # Product Requirements Document
-## Quip Network Testnet Light Client
+## Quip Network Node Runner
 
 **Version:** 1.0
 **Date:** February 16, 2026
@@ -94,7 +94,7 @@ Current testnet setup requires Docker, CLI commands, manual port forwarding conf
 
 ```
 ┌─────────────────────────────────────────────────────┐
-│  [Quip Logo]  Quip Network Testnet Node      [—][×] │
+│  [Quip Logo]  Quip Network Node Runner       [—][×] │
 ├─────────────────────────────────────────────────────┤
 │                                                     │
 │  Status: ● Connected                                │

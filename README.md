@@ -1,9 +1,9 @@
-# Quip Network Testnet Node
+# Quip Network Node Runner
 
-Desktop application for running a Quip Network testnet node. Mine blocks, earn testnet participation credit, and help test the network.
+Desktop application for running a Quip Network node. Mine blocks, earn testnet participation credit, and help test the network.
 
 <p align="center">
-  <img src="assets/screenshot.png" alt="Quip Network Testnet Node" width="700">
+  <img src="assets/screenshot.png" alt="Quip Network Node Runner" width="700">
 </p>
 
 > **Alpha Software:** This is early testnet software. Expect bugs. Tokens have no monetary value.
@@ -28,7 +28,7 @@ Desktop application for running a Quip Network testnet node. Mine blocks, earn t
 ## Quick Start
 
 1. Download and install the app
-2. Launch "Quip Network Node"
+2. Launch "Quip Network Node Runner"
 3. Save your node secret somewhere safe (shown on first launch)
 4. Click "Start" to begin mining
 
@@ -52,8 +52,8 @@ The app needs incoming connections on UDP port 20049. To configure:
 ### macOS
 
 ```bash
-git clone https://github.com/rdyplayerB/quip-network-testnet-node.git
-cd quip-network-testnet-node
+git clone https://github.com/rdyplayerB/quip-network-node-runner.git
+cd quip-network-node-runner
 npm install
 npm run bundle-python
 npm run tauri build
@@ -65,8 +65,8 @@ npm run tauri build
 sudo apt-get update
 sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev
 
-git clone https://github.com/rdyplayerB/quip-network-testnet-node.git
-cd quip-network-testnet-node
+git clone https://github.com/rdyplayerB/quip-network-node-runner.git
+cd quip-network-node-runner
 npm install
 npm run bundle-python
 npm run tauri build
@@ -77,8 +77,8 @@ npm run tauri build
 Requires Visual Studio Build Tools with C++ workload.
 
 ```powershell
-git clone https://github.com/rdyplayerB/quip-network-testnet-node.git
-cd quip-network-testnet-node
+git clone https://github.com/rdyplayerB/quip-network-node-runner.git
+cd quip-network-node-runner
 npm install
 npm run tauri build
 ```

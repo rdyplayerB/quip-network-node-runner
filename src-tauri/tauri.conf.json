@@ -1,6 +1,6 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "Quip Network Node",
+  "productName": "Quip Network Node Runner",
   "version": "0.1.0-alpha.1",
   "identifier": "network.quip.node",
   "build": {
@@ -10,7 +10,7 @@
     "withGlobalTauri": true,
     "windows": [
       {
-        "title": "Quip Network Testnet Node",
+        "title": "Quip Network Node Runner",
         "width": 800,
         "height": 700,
         "minWidth": 600,
