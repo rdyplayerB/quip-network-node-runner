@@ -13,13 +13,11 @@ Desktop application for running a Quip Network node. Mine blocks, earn testnet p
 | Platform | Download |
 |----------|----------|
 | macOS (Apple Silicon) | [Download .dmg](../../releases/latest) |
-| Windows | [Download .exe](../../releases/latest) |
 
 ## Requirements
 
 - **Port forwarding:** UDP port `20049` must be forwarded to your machine
 - **macOS:** macOS 11 (Big Sur) or later
-- **Windows:** Windows 10 or later
 
 ## Quick Start
 
