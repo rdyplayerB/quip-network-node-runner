@@ -3,6 +3,7 @@ name = "quip-network-node"
 version = "0.1.0-alpha.1"
 description = "Quip Network Testnet Node"
 authors = ["Quip Network"]
+license = "AGPL-3.0"
 edition = "2021"
 
 [lib]

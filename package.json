@@ -2,6 +2,7 @@
   "name": "quip-network-node-runner",
   "version": "0.1.0-alpha.1",
   "description": "Quip Network Node Runner - Desktop Application",
+  "license": "AGPL-3.0",
   "private": true,
   "scripts": {
     "bundle-python": "./scripts/bundle-python.sh",
